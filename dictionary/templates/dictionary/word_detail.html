@@ -1,0 +1,190 @@
+{% extends 'dictionary/base.html' %}
+
+{% block title %}{{ word.word }} - Многоязычный словарь{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Хлебные крошки -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'dictionary:home' %}">Главная</a>
+            </li>
+            <li class="breadcrumb-item active">{{ word.word }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Основная информация о слове -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="mb-0">{{ word.word }}</h2>
+                        <div>
+                            <span class="badge bg-primary fs-6">{{ word.language.name }}</span>
+                            {% if user.is_authenticated %}
+                                <button class="btn btn-outline-danger ms-2 favorite-btn" 
+                                        data-word-id="{{ word.id }}">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Значение -->
+                    <div class="mb-4">
+                        <h5>Значение:</h5>
+                        <p class="fs-5">{{ word.meaning }}</p>
+                    </div>
+                    
+                    <!-- Произношение -->
+                    {% if word.pronunciation %}
+                        <div class="mb-4">
+                            <h5>Произношение:</h5>
+                            <p class="text-muted">{{ word.pronunciation }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Аудио -->
+                    {% if word.audio %}
+                        <div class="mb-4">
+                            <h5>Аудио:</h5>
+                            <audio controls class="w-100">
+                                <source src="{{ word.audio.url }}" type="audio/mpeg">
+                                Ваш браузер не поддерживает аудио.
+                            </audio>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Метаданные -->
+                    <div class="row mb-4">
+                        {% if word.category %}
+                            <div class="col-md-6">
+                                <strong>Категория:</strong> 
+                                <span class="badge bg-secondary">{{ word.category.code }}</span>
+                            </div>
+                        {% endif %}
+                        
+                        {% if word.difficulty %}
+                            <div class="col-md-6">
+                                <strong>Сложность:</strong> 
+                                <span class="badge bg-info">{{ word.get_difficulty_display }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Теги -->
+                    {% if tags %}
+                        <div class="mb-4">
+                            <h5>Теги:</h5>
+                            {% for tag_data in tags %}
+                                <span class="badge bg-light text-dark me-1">{{ tag_data.name }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Изображение -->
+                    {% if word.image %}
+                        <div class="mb-4">
+                            <h5>Изображение:</h5>
+                            <img src="{{ word.image.url }}" class="img-fluid rounded" alt="{{ word.word }}">
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Файл -->
+                    {% if word.file %}
+                        <div class="mb-4">
+                            <h5>Файл:</h5>
+                            <a href="{{ word.file.url }}" class="btn btn-outline-primary" download>
+                                <i class="fas fa-download"></i> Скачать файл
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer text-muted">
+                    <small>
+                        <i class="fas fa-calendar"></i> Создано: {{ word.created_at|date:"d.m.Y H:i" }}
+                        {% if word.created_by %}
+                            <i class="fas fa-user ms-3"></i> Автор: {{ word.created_by.username }}
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Боковая панель -->
+        <div class="col-lg-4">
+            <!-- Переводы -->
+            {% if translations %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-language"></i> Переводы</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for translation in translations %}
+                            <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                                <div>
+                                    <strong>{{ translation.to_word.word }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ translation.to_word.meaning|truncatewords:5 }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-primary">{{ translation.to_word.language.code|upper }}</span>
+                                    {% if translation.note %}
+                                        <br>
+                                        <small class="text-muted">{{ translation.note }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Примеры -->
+            {% if examples %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-quote-left"></i> Примеры</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for example in examples %}
+                            <div class="mb-3 p-3 border-start border-primary">
+                                <p class="mb-1">{{ example.text }}</p>
+                                {% if example.author %}
+                                    <small class="text-muted">
+                                        <i class="fas fa-user"></i> {{ example.author.username }}
+                                    </small>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Статистика -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Статистика</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4>{{ translations.count }}</h4>
+                            <small class="text-muted">Переводов</small>
+                        </div>
+                        <div class="col-6">
+                            <h4>{{ examples.count }}</h4>
+                            <small class="text-muted">Примеров</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
