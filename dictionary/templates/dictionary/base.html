@@ -10,56 +10,6 @@
     <!-- FontAwesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- <style>
-        .search-box {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 3rem 0;
-            margin-bottom: 2rem;
-        }
-        .alphabet-filter {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin: 1rem 0;
-        }
-        .alphabet-filter .btn {
-            min-width: 2.5rem;
-        }
-        .word-card {
-            transition: transform 0.2s;
-        }
-        .word-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .language-badge {
-            font-size: 0.75rem;
-        }
-        .search-suggestions {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #ddd;
-            border-top: none;
-            max-height: 300px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-        }
-        .suggestion-item {
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            border-bottom: 1px solid #eee;
-        }
-        .suggestion-item:hover {
-            background-color: #f8f9fa;
-        }
-    </style> -->
-    
-
-
     <style>
         :root {
             --primary: #2a3f8a;       /* основной оттенок синего */
@@ -149,8 +99,6 @@
         }
     </style>
     
-
-    
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -172,12 +120,17 @@
                     </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Избранное</a>
+                            <a class="nav-link" href="{% url 'dictionary:profile' %}">Профиль</a>
                         </li>
+                        {% if user.is_staff %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'dictionary:translation_dashboard' %}">Переводы</a>
+                            </li>
+                        {% endif %}
                     {% endif %}
                 </ul>
                 
-                <!-- Переключатель языка -->
+                <!-- Переключатель языка и аутентификация -->
                 <div class="navbar-nav">
                     <div class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
@@ -202,12 +155,32 @@
                                 <i class="fas fa-user"></i> {{ user.username }}
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#">Профиль</a></li>
-                                <li><a class="dropdown-item" href="#">Выйти</a></li>
+                                <li><a class="dropdown-item" href="{% url 'dictionary:profile' %}">
+                                    <i class="fas fa-user"></i> Профиль
+                                </a></li>
+                                {% if user.is_staff %}
+                                    <li><a class="dropdown-item" href="{% url 'admin:index' %}">
+                                        <i class="fas fa-cog"></i> Админка
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'dictionary:translation_dashboard' %}">
+                                        <i class="fas fa-language"></i> Переводы
+                                    </a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'dictionary:logout' %}">
+                                    <i class="fas fa-sign-out-alt"></i> Выйти
+                                </a></li>
                             </ul>
                         </div>
                     {% else %}
-                        <a class="nav-link" href="#">Войти</a>
+                        <div class="navbar-nav">
+                            <a class="nav-link" href="{% url 'dictionary:login' %}">
+                                <i class="fas fa-sign-in-alt"></i> Войти
+                            </a>
+                            <a class="nav-link" href="{% url 'dictionary:register' %}">
+                                <i class="fas fa-user-plus"></i> Регистрация
+                            </a>
+                        </div>
                     {% endif %}
                 </div>
             </div>
@@ -216,6 +189,18 @@
 
     <!-- Основной контент -->
     <main>
+        <!-- Сообщения -->
+        {% if messages %}
+            <div class="container mt-3">
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
         {% block content %}{% endblock %}
     </main>
 
